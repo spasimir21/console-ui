@@ -50,6 +50,7 @@ const Input = Component(
     const xScroll = useState(0);
 
     const usableWidth = useComputed(() => $width - ($config.padX ?? 0) * 2 - 2);
+    const isFocused = useComputed((): boolean => $focused === name);
 
     const moveCursorForward = () => {
       if ($cursorOffset < $usableWidth && $cursorOffset < $value.length - $xScroll) $cursorOffset++;
@@ -62,7 +63,7 @@ const Input = Component(
     };
 
     useKeypressHandler(press => {
-      if ($focused !== name) return;
+      if (!$isFocused) return;
 
       const insertionPoint = $xScroll + $cursorOffset;
 
@@ -87,14 +88,14 @@ const Input = Component(
     });
 
     useEffect(() => {
-      if ($focused === name)
+      if ($isFocused)
         Terminal.setCursorPosition($x + 1 + ($config.padX ?? 0) + $cursorOffset, $y + 1 + ($config.padY ?? 0));
       else {
         $cursorOffset = 0;
         $xScroll = 0;
       }
 
-      cursorManager.toggleCursor(name, $focused === name);
+      cursorManager.toggleCursor(name, $isFocused);
     });
 
     return [
@@ -116,8 +117,8 @@ const Input = Component(
         y: $y,
         width: $width,
         height: $height,
-        design: ($focused === name ? $config.focusedBoxDesign : $config.boxDesign) ?? $config.boxDesign,
-        style: ($focused === name ? $config.focusedBoxStyle : $config.boxStyle) ?? $config.boxStyle
+        design: ($isFocused ? $config.focusedBoxDesign : $config.boxDesign) ?? $config.boxDesign,
+        style: ($isFocused ? $config.focusedBoxStyle : $config.boxStyle) ?? $config.boxStyle
       }))
     ];
   },

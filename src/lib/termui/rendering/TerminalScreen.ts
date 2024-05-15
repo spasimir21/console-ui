@@ -82,20 +82,13 @@ function createTerminalScreen(stream: NodeJS.WriteStream, width: number, height:
 
       output += this.styles.get(prevStyleIndex)!.close;
 
-      if (batchDepth === 0)
-        stream.write(output + `\u001b[${Terminal.cursorY + 1};${Terminal.cursorX + 1}H`);
+      if (batchDepth === 0) stream.write(output + `\u001b[${Terminal.cursorY + 1};${Terminal.cursorX + 1}H`);
       else batchedOutput += output;
     },
     resize(newWidth, newHeight) {
       for (const layer of this.layers) layer.resize(newWidth, newHeight);
 
-      this.depthBuffer = resizeUint16Array(
-        this.depthBuffer,
-        this.width,
-        this.height,
-        newWidth,
-        newHeight
-      );
+      this.depthBuffer = resizeUint16Array(this.depthBuffer, this.width, this.height, newWidth, newHeight);
 
       this.width = newWidth;
       this.height = newHeight;

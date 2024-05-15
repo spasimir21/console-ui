@@ -7,6 +7,7 @@ import { useValue } from '../hooks/useValue';
 import { Box, BoxDesign } from './Box';
 import { Chalk } from 'chalk';
 import { Text } from './Text';
+import { useComputed } from '../hooks/useComputed';
 
 interface ButtonConfig extends BBConfig {
   padX?: number;
@@ -36,10 +37,12 @@ const Button = Component(
       () => ($config.padY ?? 0) * 2 + 1
     );
 
+    const isFocused = useComputed(() => $focused === name);
+
     useClickToFocus(name, focused, x, y, width, height, callback);
 
     useKeypressHandler(press => {
-      if ($focused !== name || press.name !== 'return') return;
+      if (!$isFocused || press.name !== 'return') return;
       callback();
     });
 
@@ -49,13 +52,13 @@ const Button = Component(
         y: $y,
         width: $width,
         height: $height,
-        design: ($focused === name ? $config.focusedBoxDesign : $config.boxDesign) ?? $config.boxDesign,
-        style: ($focused === name ? $config.focusedBoxStyle : $config.boxStyle) ?? $config.boxStyle
+        design: ($isFocused ? $config.focusedBoxDesign : $config.boxDesign) ?? $config.boxDesign,
+        style: ($isFocused ? $config.focusedBoxStyle : $config.boxStyle) ?? $config.boxStyle
       })),
       Text(text, () => ({
         x: $x + ($config.padX ?? 0),
         y: $y + ($config.padY ?? 0),
-        style: ($focused === name ? $config.focusedTextStyle : $config.textStyle) ?? $config.textStyle
+        style: ($isFocused ? $config.focusedTextStyle : $config.textStyle) ?? $config.textStyle
       }))
     ];
   },

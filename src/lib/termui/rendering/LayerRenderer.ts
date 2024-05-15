@@ -43,14 +43,7 @@ function createLayerRenderer(screen: TerminalScreen, zIndex: number): LayerRende
       screen.removeLayer(this.zIndex);
     },
     resize(newWidth: number, newHeight: number) {
-      this.buffer = resizeArray(
-        this.buffer,
-        '',
-        this.screen.width,
-        this.screen.height,
-        newWidth,
-        newHeight
-      );
+      this.buffer = resizeArray(this.buffer, '\x00', this.screen.width, this.screen.height, newWidth, newHeight);
 
       this.styleBuffer = resizeUint16Array(
         this.styleBuffer,
