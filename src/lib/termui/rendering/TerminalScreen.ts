@@ -1,6 +1,7 @@
 import { LayerRenderer, createLayerRenderer } from './LayerRenderer';
 import { IndexedSet } from '../utils/IndexedSet';
 import { Style, createStyleSet } from './style';
+import { Terminal } from '../Terminal';
 
 interface TerminalScreen {
   readonly size: number;
@@ -77,7 +78,7 @@ function createTerminalScreen() {
       output += this.styles.get(prevStyleIndex)!.close;
       output = `\u001b[${Math.round(y)};${Math.round(x)}H${output}`;
 
-      if (batchDepth === 0) process.stdout.write(output);
+      if (batchDepth === 0) process.stdout.write(output + `\u001b[${Terminal.cursorY};${Terminal.cursorX}H`);
       else batchedOutput += output;
     },
     beginBatch() {
@@ -87,7 +88,7 @@ function createTerminalScreen() {
       batchDepth = Math.max(batchDepth - 1, 0);
       if (batchDepth !== 0) return;
 
-      process.stdout.write(batchedOutput);
+      process.stdout.write(batchedOutput + `\u001b[${Terminal.cursorY};${Terminal.cursorX}H`);
       batchedOutput = '';
     }
   };

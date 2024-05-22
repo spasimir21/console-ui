@@ -1,16 +1,14 @@
-import { Component, Div, Text, useClickHandler, useKeypressHandler, useState } from './lib/termui';
+import { Component, Div, Terminal, Text, useClickHandler, useKeypressHandler, useState } from './lib/termui';
 import chalk from 'chalk';
 
 const App = Component((): Component => {
   const text = useState('');
 
   useKeypressHandler(keypress => {
-    if (keypress.name === 'backspace') {
-      $text = $text.slice(0, -1);
-      return;
-    }
+    if (keypress.name === 'backspace') $text = $text.slice(0, -1);
+    else $text += keypress.sequence;
 
-    $text += keypress.sequence;
+    Terminal.setCursor(5 + $text.length * 2, $text.length);
   });
 
   useClickHandler(info => {

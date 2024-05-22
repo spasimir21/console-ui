@@ -3,6 +3,8 @@ import keypress from 'keypress';
 
 const Terminal = {
   isCursorVisible: true,
+  cursorX: 0,
+  cursorY: 0,
   clear() {
     process.stdout.write('\x1Bc');
   },
@@ -31,6 +33,11 @@ const Terminal = {
   },
   disableMouseInput() {
     keypress.disableMouse(process.stdout);
+  },
+  setCursor(x: number, y: number) {
+    this.cursorX = Math.round(x);
+    this.cursorY = Math.round(y);
+    process.stdout.write(`\u001b[${this.cursorY};${this.cursorX}H$`);
   }
 };
 
