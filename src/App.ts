@@ -1,34 +1,33 @@
-import { Component, Div, Terminal, Text, useClickHandler, useKeypressHandler, useState } from './lib/termui';
 import chalk from 'chalk';
+import {
+  Component,
+  Text,
+  defineComponentsExports,
+  useExport,
+  useInterval,
+  useState
+} from './lib/termui';
 
-const App = Component((): Component => {
-  const text = useState('');
+const Timer = Component(() => {
+  const time = useState(0);
 
-  useKeypressHandler(keypress => {
-    if (keypress.name === 'backspace') $text = $text.slice(0, -1);
-    else $text += keypress.sequence;
+  useInterval(() => $time++, 1000);
 
-    Terminal.setCursor(5 + $text.length * 2, $text.length);
-  });
+  useExport('time', time);
+}, defineComponentsExports<{ time: number }>());
 
-  useClickHandler(info => {
-    $text += JSON.stringify(info);
-  });
+const App = Component((): Component[] => {
+  const timer = Timer();
 
-  return Div(
+  return [
+    timer,
     Text(() => ({
-      x: 5,
-      y: $text.length,
-      text: 'Lorem Ipsum '.repeat(16),
-      style: $text.length % 2 == 0 ? chalk.bgBlue.red : chalk.bgGreen.blue
-    })),
-    Text(() => ({
-      x: 5 + $text.length,
-      y: $text.length,
-      text: $text,
-      style: $text.length % 2 == 0 ? chalk.green : chalk.yellow
+      x: 1,
+      y: 5,
+      text: timer.time.toString(),
+      style: chalk.red
     }))
-  );
+  ];
 });
 
 export { App };

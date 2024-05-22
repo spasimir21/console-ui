@@ -1,30 +1,53 @@
 import { popComponentContext, pushComponentContext } from './ComponentContext';
 import { TerminalScreen } from '../rendering/TerminalScreen';
+import { getValue } from '../../reactivity';
 
-interface Component {
+type Component<T = Record<string, any>> = {
   mount(screen: TerminalScreen): void;
   cleanup(): void;
-}
+} & T;
 
-type ComponentFunction<T extends any[] = any[]> = (...args: T) => Component | void;
+type ComponentFunction<TArgs extends any[] = any[]> = (
+  ...args: TArgs
+) => Component | Component[] | null | undefined | void;
 
-const Component =
-  <T extends any[]>(componentFunction: ComponentFunction<T>) =>
-  (...args: T): Component => {
+function Component<TArgs extends any[], TExports = {}>(
+  componentFunction: ComponentFunction<TArgs>,
+  _exports?: TExports
+) {
+  return (...args: TArgs): Component<TExports> => {
     pushComponentContext();
-    const childComponent = componentFunction(...args);
+    const returnedChildren = componentFunction(...args);
     const context = popComponentContext();
 
-    return {
+    // prettier-ignore
+    const children: Component[] =
+        returnedChildren == null ? []
+      : Array.isArray(returnedChildren) ? returnedChildren
+      : [returnedChildren];
+
+    const component: Component = {
       mount(screen) {
         for (const onMount of context.onMountCallbacks) onMount(screen);
-        if (childComponent) childComponent.mount(screen);
+        for (const child of children) child.mount(screen);
       },
       cleanup() {
-        if (childComponent) childComponent.cleanup();
+        for (const child of children) child.cleanup();
         for (const cleanup of context.cleanups) cleanup();
       }
     };
-  };
 
-export { Component, ComponentFunction };
+    for (const name in context.exports)
+      Object.defineProperty(component, name, {
+        configurable: false,
+        enumerable: true,
+        get: () => getValue(context.exports[name])
+      });
+
+    return component as Component<TExports>;
+  };
+}
+
+const defineComponentsExports = <T>() => null as any as T;
+
+export { Component, ComponentFunction, defineComponentsExports };
