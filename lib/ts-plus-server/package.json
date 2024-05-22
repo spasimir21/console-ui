@@ -1,0 +1,21 @@
+{
+  "name": "ts-plus-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "dependencies": {
+    "@types/resolve": "^1.20.6",
+    "resolve": "^1.22.8",
+    "ts-expose-internals": "^5.3.3",
+    "ts-node": "^10.9.2",
+    "ts-patch": "^3.1.2",
+    "typescript": "^5.3.3",
+    "ts-plus": "file:../ts-plus"
+  },
+  "author": "Spasimir Pavlov",
+  "license": "MIT"
+}
