@@ -7,7 +7,7 @@ import { makeMapReactive } from './reactive/reactiveMap';
 import { EqualityCheck, areIdentical } from './equal';
 import { Constructor } from './utils/utilTypes';
 
-function makeReactive<T>(value: T, depth: number = Infinity, equalityCheck: EqualityCheck = areIdentical) {
+function makeReactive<T>(value: T, depth: number = Infinity, equalityCheck: EqualityCheck = areIdentical): T {
   if (depth == 0 || value == null || typeof value !== 'object' || isReactive(value)) return value;
 
   markReactive(value);

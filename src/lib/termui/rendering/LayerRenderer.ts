@@ -1,5 +1,5 @@
 import { TerminalScreen } from './TerminalScreen';
-import { RESET_STYLE, Style } from './style';
+import { ResetStyle, Style } from './style';
 
 interface LayerRenderer {
   readonly screen: TerminalScreen;
@@ -16,7 +16,7 @@ function createLayerRenderer(screen: TerminalScreen, zIndex: number): LayerRende
     buffer: new Array(screen.width * screen.height).fill('\x00'),
     styleBuffer: new Uint16Array(screen.width * screen.height),
     zIndex,
-    write(x, y, text, style = RESET_STYLE) {
+    write(x, y, text, style = ResetStyle) {
       const startPos = y * screen.width + x;
 
       for (let i = 0; i < text.length; i++) this.buffer[startPos + i] = text.charAt(i);

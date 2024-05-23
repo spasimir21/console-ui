@@ -63,6 +63,7 @@ function createTerminalScreen() {
         }
 
         const styleIndex = this.layers[zIndex].styleBuffer[pos];
+
         if (styleIndex !== prevStyleIndex) {
           output += this.styles.get(prevStyleIndex)!.close;
           output += this.styles.get(styleIndex)!.open;
@@ -76,9 +77,9 @@ function createTerminalScreen() {
       }
 
       output += this.styles.get(prevStyleIndex)!.close;
-      output = `\u001b[${Math.round(y)};${Math.round(x)}H${output}`;
+      output = `\u001b[${Math.floor(y) + 1};${Math.floor(x) + 1}H${output}`;
 
-      if (batchDepth === 0) process.stdout.write(output + `\u001b[${Terminal.cursorY};${Terminal.cursorX}H`);
+      if (batchDepth === 0) process.stdout.write(output + `\u001b[${Terminal.cursorY + 1};${Terminal.cursorX + 1}H`);
       else batchedOutput += output;
     },
     beginBatch() {
@@ -88,7 +89,7 @@ function createTerminalScreen() {
       batchDepth = Math.max(batchDepth - 1, 0);
       if (batchDepth !== 0) return;
 
-      process.stdout.write(batchedOutput + `\u001b[${Terminal.cursorY};${Terminal.cursorX}H`);
+      process.stdout.write(batchedOutput + `\u001b[${Terminal.cursorY + 1};${Terminal.cursorX + 1}H`);
       batchedOutput = '';
     }
   };

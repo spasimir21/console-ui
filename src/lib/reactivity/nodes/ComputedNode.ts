@@ -4,6 +4,7 @@ import { EqualityCheck, areIdentical } from '../equal';
 import { makeReactive } from '../makeReactive';
 import { DuplexNode } from './base/DuplexNode';
 import { TrackStack } from '../TrackStack';
+import { ReadableNode } from './node';
 import { getRaw } from '../raw';
 
 interface ComputedOptions {
@@ -11,7 +12,7 @@ interface ComputedOptions {
   reactiveDepth?: number;
 }
 
-class ComputedNode<T> extends DuplexNode {
+class ComputedNode<T> extends DuplexNode implements ReadableNode<T> {
   public readonly options: Required<ComputedOptions>;
 
   protected _value: T = null as any;

@@ -1,9 +1,7 @@
-import { ComputedNode } from './nodes/ComputedNode';
-import { StateNode } from './nodes/StateNode';
+import { computed } from './shorthand/computed';
+import { ReadableNode } from './nodes/node';
 
-type ValueNode<T> = StateNode<T> | ComputedNode<T>;
-
-type Value<T> = T | (() => T) | ValueNode<T>;
+type Value<T> = T | (() => T) | ReadableNode<T>;
 
 // prettier-ignore
 const getValue = <T>(value: Value<T>): T =>
@@ -11,4 +9,6 @@ const getValue = <T>(value: Value<T>): T =>
   : typeof value === 'object' && value != null && 'value' in value ? value.value
   : value;
 
-export { ValueNode, Value, getValue };
+const valueToComputed = <T>(value: Value<T>) => computed(() => getValue(value));
+
+export { Value, getValue, valueToComputed };

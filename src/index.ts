@@ -1,11 +1,11 @@
 import { Terminal, createTerminalScreen } from './lib/termui';
 import { App } from './App';
 
+Terminal.clear();
+// Terminal.hideCursor();
+
 Terminal.enableKeyboardInput();
 Terminal.enableMouseInput();
-
-Terminal.clear();
-Terminal.hideCursor();
 
 const screen = createTerminalScreen();
 

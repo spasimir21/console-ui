@@ -1,11 +1,10 @@
 import { popComponentContext, pushComponentContext } from './ComponentContext';
 import { TerminalScreen } from '../rendering/TerminalScreen';
-import { getValue } from '../../reactivity';
 
 type Component<T = Record<string, any>> = {
   mount(screen: TerminalScreen): void;
   cleanup(): void;
-} & T;
+} & Readonly<T>;
 
 type ComponentFunction<TArgs extends any[] = any[]> = (
   ...args: TArgs
@@ -41,13 +40,13 @@ function Component<TArgs extends any[], TExports = {}>(
       Object.defineProperty(component, name, {
         configurable: false,
         enumerable: true,
-        get: () => getValue(context.exports[name])
+        get: context.exports[name]
       });
 
     return component as Component<TExports>;
   };
 }
 
-const defineComponentsExports = <T>() => null as any as T;
+const defineComponentExports = <T>() => null as any as T;
 
-export { Component, ComponentFunction, defineComponentsExports };
+export { Component, ComponentFunction, defineComponentExports };

@@ -13,12 +13,12 @@ const createStyle = (chalkStyle: Chalk): Style => ({
   close: chalkStyle._styler.closeAll
 });
 
-const RESET_STYLE = createStyle(chalk.reset);
+const ResetStyle = createStyle(chalk.reset);
 
 function createStyleSet() {
   const styles = createIndexedSet<Style, string>(style => style.open);
-  styles.add(RESET_STYLE);
+  styles.add(ResetStyle);
   return styles;
 }
 
-export { createStyleSet, createStyle, RESET_STYLE, Style };
+export { createStyleSet, createStyle, ResetStyle, Style };

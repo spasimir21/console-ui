@@ -23,6 +23,7 @@ export * from './nodes/base/DuplexNode';
 export * from './nodes/ComputedNode';
 export * from './nodes/EffectNode';
 export * from './nodes/StateNode';
+export * from './nodes/node';
 
 export * from './reactive/reactiveObject';
 export * from './reactive/reactiveArray';

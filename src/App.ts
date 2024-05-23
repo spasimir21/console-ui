@@ -1,33 +1,61 @@
+import { makeReactive, propertyRef } from './lib/reactivity';
 import chalk from 'chalk';
 import {
   Component,
-  Text,
-  defineComponentsExports,
-  useExport,
-  useInterval,
-  useState
+  useScreen,
+  Input,
+  useState,
+  SolidBoxDesign,
+  SolidBoldBoxDesign,
+  Alignment,
+  VerticalLayout
 } from './lib/termui';
 
-const Timer = Component(() => {
-  const time = useState(0);
+const App = Component((): Component => {
+  const screen = useScreen();
 
-  useInterval(() => $time++, 1000);
+  const focused = useState('');
 
-  useExport('time', time);
-}, defineComponentsExports<{ time: number }>());
+  const formData = makeReactive({
+    email: '',
+    password: ''
+  });
 
-const App = Component((): Component[] => {
-  const timer = Timer();
-
-  return [
-    timer,
-    Text(() => ({
-      x: 1,
-      y: 5,
-      text: timer.time.toString(),
-      style: chalk.red
-    }))
-  ];
+  return VerticalLayout(
+    () => ({
+      x: 0,
+      y: 0,
+      width: $screen?.width ?? 0,
+      height: $screen?.height ?? 0,
+      padding: [0, 0],
+      itemsAlign: Alignment.Center
+    }),
+    [
+      Input('email', focused, propertyRef(formData, 'email'), () => ({
+        horizontalAlign: Alignment.Center,
+        x: 0,
+        y: 0,
+        width: 50,
+        padding: [1, 0],
+        placeholder: 'Email',
+        boxDesign: SolidBoxDesign,
+        focusedBoxDesign: SolidBoldBoxDesign,
+        focusedBoxStyle: chalk.yellow,
+        placeholderStyle: chalk.dim
+      })),
+      Input('password', focused, propertyRef(formData, 'password'), {
+        x: 0,
+        y: 0,
+        width: 50,
+        padding: [1, 0],
+        placeholder: 'Password',
+        boxDesign: SolidBoxDesign,
+        focusedBoxDesign: SolidBoldBoxDesign,
+        focusedBoxStyle: chalk.yellow,
+        placeholderStyle: chalk.dim
+      })
+    ]
+  );
 });
 
 export { App };

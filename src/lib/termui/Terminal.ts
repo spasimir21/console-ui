@@ -34,10 +34,10 @@ const Terminal = {
   disableMouseInput() {
     keypress.disableMouse(process.stdout);
   },
-  setCursor(x: number, y: number) {
-    this.cursorX = Math.round(x);
-    this.cursorY = Math.round(y);
-    process.stdout.write(`\u001b[${this.cursorY};${this.cursorX}H$`);
+  setCursorPosition(x: number, y: number) {
+    this.cursorX = Math.floor(x);
+    this.cursorY = Math.floor(y);
+    process.stdout.write(`\u001b[${this.cursorY + 1};${this.cursorX + 1}H`);
   }
 };
 

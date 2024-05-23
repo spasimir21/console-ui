@@ -3,6 +3,7 @@ import { EqualityCheck, areIdentical } from '../equal';
 import { ReactiveEvent } from '../reactiveEvent';
 import { makeReactive } from '../makeReactive';
 import { TrackStack } from '../TrackStack';
+import { WritableNode } from './node';
 import { getRaw } from '../raw';
 
 interface StateOptions {
@@ -10,7 +11,7 @@ interface StateOptions {
   reactiveDepth?: number;
 }
 
-class StateNode<T> extends SubscribableNode {
+class StateNode<T> extends SubscribableNode implements WritableNode<T> {
   public readonly options: Required<StateOptions>;
 
   protected _value: T;

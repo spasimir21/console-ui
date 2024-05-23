@@ -1,35 +1,40 @@
-import { RESET_STYLE, createStyle } from '../rendering/style';
-import { Value, getValue } from '../../reactivity';
+import { ReadableNode, Value } from '../../reactivity';
+import { useComputed } from '../hooks/useComputed';
 import { Component } from '../component/Component';
+import { createStyle } from '../rendering/style';
 import { useEffect } from '../hooks/useEffect';
 import { useLayer } from '../hooks/useLayer';
+import { useValue } from '../hooks/useValue';
 import { Chalk } from 'chalk';
 
 interface TextConfig {
   x: number;
   y: number;
-  text: string;
   style?: Chalk;
   clear?: boolean;
 }
 
-const Text = Component((configValue: Value<TextConfig>) =>
+const Text = Component((text: ReadableNode<string>, configValue: Value<TextConfig>) => {
+  const config = useValue(configValue);
+
+  const style = useComputed(() => ($config.style ? createStyle($config.style!) : undefined));
+
   useLayer(layer => {
-    let prevConfig = getValue(configValue);
+    let prevLength = 0;
+    let prevX = 0;
+    let prevY = 0;
 
     useEffect(() => {
-      const config = getValue(configValue);
-
-      const style = config.style ? createStyle(config.style) : RESET_STYLE;
-
       layer.screen.beginBatch();
-      if (config.clear !== false) layer.write(prevConfig.x, prevConfig.y, '\x00'.repeat(prevConfig.text.length));
-      layer.write(config.x, config.y, config.text, style);
+      if ($config.clear !== false) layer.write(prevX, prevY, '\x00'.repeat(prevLength));
+      layer.write($config.x, $config.y, $text, $style);
       layer.screen.endBatch();
 
-      prevConfig = { ...config };
+      prevLength = $text.length;
+      prevX = $config.x;
+      prevY = $config.y;
     });
-  })
-);
+  });
+});
 
-export { Text };
+export { Text, TextConfig };
