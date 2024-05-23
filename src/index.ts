@@ -1,8 +1,10 @@
 import { Terminal, createTerminalScreen } from './lib/termui';
 import { App } from './App';
 
+process.title = 'TermUI Account Manager';
+
 Terminal.clear();
-// Terminal.hideCursor();
+Terminal.hideCursor();
 
 Terminal.enableKeyboardInput();
 Terminal.enableMouseInput();
@@ -19,4 +21,6 @@ process.on('exit', () => {
 
   Terminal.clear();
   Terminal.showCursor();
+
+  console.log(screen.layers.length);
 });

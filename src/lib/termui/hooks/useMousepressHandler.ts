@@ -19,8 +19,6 @@ interface MousePress {
 function useMousepressHandler(handler: (mousepress: MousePress) => void, context = getCurrentComponentContext()) {
   const newHandler = useCallback((mousepress?: MousePress) => {
     if (mousepress == null) return;
-    mousepress.x--;
-    mousepress.y--;
     handler(mousepress);
   }, context);
 

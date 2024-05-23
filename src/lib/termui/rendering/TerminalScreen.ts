@@ -1,4 +1,5 @@
 import { LayerRenderer, createLayerRenderer } from './LayerRenderer';
+import { applyDecorationsToObject } from '../../reactivity';
 import { IndexedSet } from '../utils/IndexedSet';
 import { Style, createStyleSet } from './style';
 import { Terminal } from '../Terminal';
@@ -23,9 +24,11 @@ function createTerminalScreen() {
   let batchDepth = 0;
 
   const screen: TerminalScreen = {
-    size: process.stdout.columns * process.stdout.rows,
     width: process.stdout.columns,
     height: process.stdout.rows,
+    get size() {
+      return this.width * this.height;
+    },
     depthBuffer: new Uint16Array(process.stdout.columns * process.stdout.rows),
     styleBuffer: new Uint16Array(process.stdout.columns * process.stdout.rows),
     layers: [],
@@ -93,6 +96,11 @@ function createTerminalScreen() {
       batchedOutput = '';
     }
   };
+
+  applyDecorationsToObject(screen, {
+    state: ['width', 'height'],
+    computed: ['size']
+  });
 
   const baseLayer = screen.createLayer();
   baseLayer.buffer.fill(' ');

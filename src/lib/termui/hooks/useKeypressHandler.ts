@@ -10,10 +10,10 @@ interface KeyPress {
   shift: boolean;
 }
 
-function useKeypressHandler(handler: (keypress: KeyPress) => void, context = getCurrentComponentContext()) {
-  const newHandler = useCallback((_: any, keypress?: KeyPress) => {
-    if (keypress == null) return;
-    handler(keypress);
+function useKeypressHandler(handler: (press: KeyPress) => void, context = getCurrentComponentContext()) {
+  const newHandler = useCallback((_: any, press?: KeyPress) => {
+    if (press == null) return;
+    handler(press);
   }, context);
 
   process.stdin.on('keypress', newHandler);

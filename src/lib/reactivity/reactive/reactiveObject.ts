@@ -84,7 +84,11 @@ function makeObjectReactive<T extends object>(object: T, depth: number, equality
 
   setRaw(proxy, object);
 
-  for (const key of keysOf(object)) object[key] = makeReactive(object[key], depth, equalityCheck);
+  for (const key of keysOf(object)) {
+    try {
+      object[key] = makeReactive(object[key], depth, equalityCheck);
+    } catch {}
+  }
 
   return proxy;
 }

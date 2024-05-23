@@ -1,10 +1,10 @@
 import { Component, defineComponentExports } from '../component/Component';
-import { useMousepressHandler } from '../hooks/useMousepressHandler';
 import { Value, WritableNode, readableNode } from '../../reactivity';
 import { useKeypressHandler } from '../hooks/useKeypressHandler';
-import { Alignment, fixAlignment } from '../alignAndSpace';
-import { useComputed } from '../hooks/useComputed';
+import { useClickToFocus } from '../hooks/useClickToFocus';
 import { BBConfig, WithBB, useBB } from '../hooks/useBB';
+import { isPrintableASCII } from '../utils/isASCII';
+import { CursorManager } from './CursorManager';
 import { useEffect } from '../hooks/useEffect';
 import { useValue } from '../hooks/useValue';
 import { useState } from '../hooks/useState';
@@ -12,11 +12,16 @@ import { Box, BoxDesign } from './Box';
 import { Terminal } from '../Terminal';
 import { Chalk } from 'chalk';
 import { Text } from './Text';
+import { useComputed } from '../hooks/useComputed';
+
+const isSpecialKey = (sequence: string) => sequence.length > 1 || !isPrintableASCII(sequence);
 
 interface InputConfig extends BBConfig {
   width: number;
-  padding: [number, number];
-  placeholder: string;
+  charMask?: string;
+  padX?: number;
+  padY?: number;
+  placeholder?: string;
   boxDesign: BoxDesign;
   focusedBoxDesign?: BoxDesign;
   boxStyle?: Chalk;
@@ -29,6 +34,7 @@ const Input = Component(
   (
     name: string,
     focused: WritableNode<string>,
+    cursorManager: CursorManager,
     value: WritableNode<string>,
     configValue: Value<InputConfig>
   ): Component[] => {
@@ -37,53 +43,74 @@ const Input = Component(
     const { x, y, width, height } = useBB(
       config,
       () => $config.width,
-      () => $config.padding[1] * 2 + 3
+      () => ($config.padY ?? 0) * 2 + 3
     );
 
     const cursorOffset = useState(0);
-    const textOffset = useState(0);
+    const xScroll = useState(0);
 
-    const textWidth = useComputed(() => $width - $config.padding[0] * 2 - 2);
+    const usableWidth = useComputed(() => $width - ($config.padX ?? 0) * 2 - 2);
+
+    const moveCursorForward = () => {
+      if ($cursorOffset < $usableWidth && $cursorOffset < $value.length - $xScroll) $cursorOffset++;
+      else if ($value.length - $xScroll > $usableWidth) $xScroll++;
+    };
+
+    const moveCursorBack = () => {
+      if ($cursorOffset > 0) $cursorOffset--;
+      else if ($xScroll > 0) $xScroll--;
+    };
 
     useKeypressHandler(press => {
       if ($focused !== name) return;
 
-      if (press.name === 'left') {
-        $cursorOffset--;
-        return;
-      } else if (press.name === 'right') {
-        $cursorOffset++;
+      const insertionPoint = $xScroll + $cursorOffset;
+
+      if (isSpecialKey(press.sequence)) {
+        if (press.name === 'right') moveCursorForward();
+        else if (press.name === 'left') moveCursorBack();
+        else if (press.name === 'delete') $value = $value.slice(0, insertionPoint) + $value.slice(insertionPoint + 1);
+        else if (press.name === 'backspace' && insertionPoint > 0) {
+          $value = $value.slice(0, insertionPoint - 1) + $value.slice(insertionPoint);
+          moveCursorBack();
+        }
+
         return;
       }
 
-      $value += press.name;
-      $cursorOffset += press.name.length;
+      $value = $value.slice(0, insertionPoint) + press.sequence + $value.slice(insertionPoint);
+      moveCursorForward();
     });
 
-    useMousepressHandler(press => {
-      if (press.x < $x || press.x > $x + $width || press.y < $y || press.y > $y + $height) return;
-
-      $focused = name;
+    useClickToFocus(name, focused, x, y, width, height, press => {
+      $cursorOffset = Math.max(Math.min(press.x - $x - ($config.padX ?? 0) - 2, $usableWidth, $value.length), 0);
     });
 
     useEffect(() => {
-      if ($focused !== name) return;
+      if ($focused === name)
+        Terminal.setCursorPosition($x + 1 + ($config.padX ?? 0) + $cursorOffset, $y + 1 + ($config.padY ?? 0));
+      else {
+        $cursorOffset = 0;
+        $xScroll = 0;
+      }
 
-      Terminal.setCursorPosition($x + 1 + $config.padding[0] + $cursorOffset, $y + 1 + $config.padding[1]);
+      cursorManager.toggleCursor(name, $focused === name);
     });
 
     return [
-      // Text(
-      //   readableNode(() => {
-      //     const text = $value.length === 0 ? $config.placeholder : $value;
-      //     return text.slice($textOffset, $textOffset + $textWidth);
-      //   }),
-      //   () => ({
-      //     x: $x + 1 + $config.padding[0],
-      //     y: $y + 1 + $config.padding[1],
-      //     style: $value.length === 0 ? $config.placeholderStyle : $config.textStyle
-      //   })
-      // ),
+      Text(
+        readableNode(() => {
+          if ($value.length === 0) return $config.placeholder ?? '';
+
+          const text = $config.charMask != null ? $config.charMask!.repeat($value.length) : $value;
+          return text.slice($xScroll, $xScroll + $usableWidth);
+        }),
+        () => ({
+          x: $x + 1 + ($config.padX ?? 0),
+          y: $y + 1 + ($config.padY ?? 0),
+          style: $value.length === 0 ? $config.placeholderStyle : $config.textStyle
+        })
+      ),
       Box(() => ({
         x: $x,
         y: $y,

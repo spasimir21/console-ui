@@ -1,0 +1,13 @@
+diff --git a/node_modules/keypress/index.js b/node_modules/keypress/index.js
+index 5539dd6..2f7ef81 100644
+--- a/node_modules/keypress/index.js
++++ b/node_modules/keypress/index.js
+@@ -393,7 +393,7 @@ function emitKey(stream, s) {
+ 
+   // Don't emit a key if no name was found
+   if (key.name === undefined) {
+-    key = undefined;
++    key.name = key.sequence;
+   }
+ 
+   if (s.length === 1) {

@@ -1,4 +1,5 @@
-import { Component } from '../component/Component';
+import { Component, defineComponentExports } from '../component/Component';
+import { BBConfig, WithBB, useBB } from '../hooks/useBB';
 import { useComputed } from '../hooks/useComputed';
 import { createStyle } from '../rendering/style';
 import { useEffect } from '../hooks/useEffect';
@@ -6,7 +7,6 @@ import { useValue } from '../hooks/useValue';
 import { useLayer } from '../hooks/useLayer';
 import { Value } from '../../reactivity';
 import { Chalk } from 'chalk';
-import { log } from '../../../log';
 
 interface BoxDesign {
   corners: [string, string, string, string];
@@ -15,9 +15,7 @@ interface BoxDesign {
   fill: string;
 }
 
-interface BoxConfig {
-  x: number;
-  y: number;
+interface BoxConfig extends BBConfig {
   width: number;
   height: number;
   design: BoxDesign;
@@ -25,6 +23,11 @@ interface BoxConfig {
   clear?: boolean;
 }
 
+/*
+  ┏━━━━┓
+  ┃    ┃
+  ┗━━━━┛
+*/
 const SolidBoldBoxDesign: BoxDesign = {
   corners: ['┏', '┓', '┗', '┛'],
   vertical: '┃',
@@ -32,10 +35,39 @@ const SolidBoldBoxDesign: BoxDesign = {
   fill: '\x00'
 };
 
+/*
+  ┌────┐
+  │    │
+  └────┘
+*/
 const SolidBoxDesign: BoxDesign = {
   corners: ['┌', '┐', '└', '┘'],
   vertical: '│',
   horizontal: '─',
+  fill: '\x00'
+};
+
+/*
+  ██████
+  ██████
+  ██████
+*/
+const BlockBoxDesign: BoxDesign = {
+  corners: ['█', '█', '█', '█'],
+  vertical: '█',
+  horizontal: '█',
+  fill: '█'
+};
+
+/*
+  
+  
+  
+*/
+const InvisibleBoxDesign: BoxDesign = {
+  corners: ['\x00', '\x00', '\x00', '\x00'],
+  vertical: '\x00',
+  horizontal: '\x00',
   fill: '\x00'
 };
 
@@ -44,6 +76,12 @@ const Box = Component((configValue: Value<BoxConfig>) => {
 
   const style = useComputed(() => ($config.style ? createStyle($config.style!) : undefined));
 
+  const { x, y, width, height } = useBB(
+    config,
+    () => $config.width,
+    () => $config.height
+  );
+
   useLayer(layer => {
     let prevWidth = 0;
     let prevHeight = 0;
@@ -51,6 +89,8 @@ const Box = Component((configValue: Value<BoxConfig>) => {
     let prevY = 0;
 
     useEffect(() => {
+      if ($x < 0 || $y < 0) return;
+
       layer.screen.beginBatch();
 
       if ($config.clear !== false) {
@@ -60,38 +100,32 @@ const Box = Component((configValue: Value<BoxConfig>) => {
 
       const design = $config.design;
 
-      const fillWidth = $config.width < 2 ? 0 : $config.width - 2;
+      const fillWidth = $width < 2 ? 0 : $width - 2;
 
-      const topLine = (design.corners[0] + design.horizontal.repeat(fillWidth) + design.corners[1]).slice(
-        0,
-        $config.width
-      );
+      const topLine = (design.corners[0] + design.horizontal.repeat(fillWidth) + design.corners[1]).slice(0, $width);
 
-      const middleLine = (design.vertical + design.fill.repeat(fillWidth) + design.vertical).slice(0, $config.width);
+      const middleLine = (design.vertical + design.fill.repeat(fillWidth) + design.vertical).slice(0, $width);
 
-      const bottomLine = (design.corners[2] + design.horizontal.repeat(fillWidth) + design.corners[3]).slice(
-        0,
-        $config.width
-      );
+      const bottomLine = (design.corners[2] + design.horizontal.repeat(fillWidth) + design.corners[3]).slice(0, $width);
 
-      for (let i = 0; i < $config.height; i++) {
+      for (let i = 0; i < $height; i++) {
         // prettier-ignore
         const line =
             i === 0 ? topLine
-          : i === $config.height - 1 ? bottomLine
+          : i === $height - 1 ? bottomLine
           : middleLine;
 
-        layer.write($config.x, $config.y + i, line, $style);
+        layer.write($x, $y + i, line, $style);
       }
 
       layer.screen.endBatch();
 
-      prevWidth = $config.width;
-      prevHeight = $config.height;
-      prevX = $config.x;
-      prevY = $config.y;
+      prevWidth = $width;
+      prevHeight = $height;
+      prevX = $x;
+      prevY = $y;
     });
   });
-});
+}, defineComponentExports<WithBB>());
 
-export { Box, BoxConfig, BoxDesign, SolidBoldBoxDesign, SolidBoxDesign };
+export { Box, BoxConfig, BoxDesign, SolidBoldBoxDesign, SolidBoxDesign, BlockBoxDesign, InvisibleBoxDesign };

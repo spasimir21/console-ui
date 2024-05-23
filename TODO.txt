@@ -1,0 +1,4 @@
+Combine keypress and mousepress listeners
+Use better render batching
+Make Text component better
+Handle resize

@@ -1,61 +1,30 @@
-import { makeReactive, propertyRef } from './lib/reactivity';
+import { useProvideAccountInfo } from './context/AccountInfo';
+import { Component, useScreen, Text } from './lib/termui';
+import { useProvideRouter } from './router';
 import chalk from 'chalk';
-import {
-  Component,
-  useScreen,
-  Input,
-  useState,
-  SolidBoxDesign,
-  SolidBoldBoxDesign,
-  Alignment,
-  VerticalLayout
-} from './lib/termui';
 
-const App = Component((): Component => {
+const App = Component((): Component[] => {
   const screen = useScreen();
 
-  const focused = useState('');
-
-  const formData = makeReactive({
-    email: '',
-    password: ''
+  useProvideAccountInfo({
+    method: '<Missing>',
+    username: '<Missing>',
+    email: '<Missing>',
+    password: '<Missing>'
   });
 
-  return VerticalLayout(
-    () => ({
-      x: 0,
-      y: 0,
-      width: $screen?.width ?? 0,
-      height: $screen?.height ?? 0,
-      padding: [0, 0],
-      itemsAlign: Alignment.Center
-    }),
-    [
-      Input('email', focused, propertyRef(formData, 'email'), () => ({
-        horizontalAlign: Alignment.Center,
-        x: 0,
-        y: 0,
-        width: 50,
-        padding: [1, 0],
-        placeholder: 'Email',
-        boxDesign: SolidBoxDesign,
-        focusedBoxDesign: SolidBoldBoxDesign,
-        focusedBoxStyle: chalk.yellow,
-        placeholderStyle: chalk.dim
-      })),
-      Input('password', focused, propertyRef(formData, 'password'), {
-        x: 0,
-        y: 0,
-        width: 50,
-        padding: [1, 0],
-        placeholder: 'Password',
-        boxDesign: SolidBoxDesign,
-        focusedBoxDesign: SolidBoldBoxDesign,
-        focusedBoxStyle: chalk.yellow,
-        placeholderStyle: chalk.dim
+  const router = useProvideRouter('register');
+
+  return [
+    $router.view,
+    Text(
+      () => JSON.stringify($router.view.data ?? null),
+      () => ({
+        y: ($screen?.height ?? 1) - 1,
+        style: chalk.dim
       })
-    ]
-  );
+    )
+  ];
 });
 
 export { App };
