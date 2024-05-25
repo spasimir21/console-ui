@@ -35,6 +35,8 @@ const Terminal = {
     keypress.disableMouse(process.stdout);
   },
   setCursorPosition(x: number, y: number) {
+    if (x < 0 || y < 0) return;
+
     this.cursorX = Math.floor(x);
     this.cursorY = Math.floor(y);
     process.stdout.write(`\u001b[${this.cursorY + 1};${this.cursorX + 1}H`);

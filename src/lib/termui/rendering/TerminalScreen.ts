@@ -1,36 +1,38 @@
 import { LayerRenderer, createLayerRenderer } from './LayerRenderer';
 import { applyDecorationsToObject } from '../../reactivity';
+import { resizeUint16Array } from '../utils/resize';
 import { IndexedSet } from '../utils/IndexedSet';
 import { Style, createStyleSet } from './style';
 import { Terminal } from '../Terminal';
 
 interface TerminalScreen {
+  readonly stream: NodeJS.WriteStream;
   readonly size: number;
-  readonly width: number;
-  readonly height: number;
-  readonly depthBuffer: Uint16Array;
-  readonly styleBuffer: Uint16Array;
+  width: number;
+  height: number;
+  depthBuffer: Uint16Array;
   readonly layers: LayerRenderer[];
   readonly styles: IndexedSet<Style>;
   createLayer(): LayerRenderer;
   removeLayer(zIndex: number): void;
   update(x: number, y: number, length: number, zIndex: number): void;
+  resize(newWidth: number, newHeight: number): void;
   beginBatch(): void;
   endBatch(): void;
 }
 
-function createTerminalScreen() {
+function createTerminalScreen(stream: NodeJS.WriteStream, width: number, height: number) {
   let batchedOutput = '';
   let batchDepth = 0;
 
   const screen: TerminalScreen = {
-    width: process.stdout.columns,
-    height: process.stdout.rows,
+    stream,
+    width,
+    height,
     get size() {
       return this.width * this.height;
     },
-    depthBuffer: new Uint16Array(process.stdout.columns * process.stdout.rows),
-    styleBuffer: new Uint16Array(process.stdout.columns * process.stdout.rows),
+    depthBuffer: new Uint16Array(width * height),
     layers: [],
     styles: createStyleSet(),
     createLayer() {
@@ -54,7 +56,7 @@ function createTerminalScreen() {
       let pos = y * this.width + x;
 
       let prevStyleIndex = 0;
-      let output = '';
+      let output = `\u001b[${y + 1};${x + 1}H`;
 
       for (let i = 0; i < length; i++) {
         let zIndex = updatedZIndex;
@@ -74,16 +76,32 @@ function createTerminalScreen() {
 
         output += this.layers[zIndex].buffer[pos];
         this.depthBuffer[pos] = zIndex;
-        this.styleBuffer[pos] = styleIndex;
         prevStyleIndex = styleIndex;
         pos++;
       }
 
       output += this.styles.get(prevStyleIndex)!.close;
-      output = `\u001b[${Math.floor(y) + 1};${Math.floor(x) + 1}H${output}`;
 
-      if (batchDepth === 0) process.stdout.write(output + `\u001b[${Terminal.cursorY + 1};${Terminal.cursorX + 1}H`);
+      if (batchDepth === 0)
+        stream.write(output + `\u001b[${Terminal.cursorY + 1};${Terminal.cursorX + 1}H`);
       else batchedOutput += output;
+    },
+    resize(newWidth, newHeight) {
+      for (const layer of this.layers) layer.resize(newWidth, newHeight);
+
+      this.depthBuffer = resizeUint16Array(
+        this.depthBuffer,
+        this.width,
+        this.height,
+        newWidth,
+        newHeight
+      );
+
+      this.width = newWidth;
+      this.height = newHeight;
+
+      this.layers[0].buffer.fill(' ');
+      screen.update(0, 0, this.width * this.height, 0);
     },
     beginBatch() {
       batchDepth++;
@@ -92,7 +110,7 @@ function createTerminalScreen() {
       batchDepth = Math.max(batchDepth - 1, 0);
       if (batchDepth !== 0) return;
 
-      process.stdout.write(batchedOutput + `\u001b[${Terminal.cursorY + 1};${Terminal.cursorX + 1}H`);
+      stream.write(batchedOutput + `\u001b[${Terminal.cursorY + 1};${Terminal.cursorX + 1}H`);
       batchedOutput = '';
     }
   };

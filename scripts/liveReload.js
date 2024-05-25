@@ -5,7 +5,10 @@ const MAIN_FILE = './dist/index.js';
 const WATCH_DIR = './dist';
 const DEBOUNCE = 500;
 
-const watcher = chokidar.watch(WATCH_DIR, { persistent: true, usePolling: true });
+const watcher = chokidar.watch(WATCH_DIR, {
+  persistent: true,
+  usePolling: process.argv[2] !== null
+});
 
 let lastChild = null;
 let lastRun = 0;

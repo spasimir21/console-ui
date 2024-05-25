@@ -89,8 +89,6 @@ const Box = Component((configValue: Value<BoxConfig>) => {
     let prevY = 0;
 
     useEffect(() => {
-      if ($x < 0 || $y < 0) return;
-
       layer.screen.beginBatch();
 
       if ($config.clear !== false) {
@@ -102,11 +100,22 @@ const Box = Component((configValue: Value<BoxConfig>) => {
 
       const fillWidth = $width < 2 ? 0 : $width - 2;
 
-      const topLine = (design.corners[0] + design.horizontal.repeat(fillWidth) + design.corners[1]).slice(0, $width);
+      const topLine = (
+        design.corners[0] +
+        design.horizontal.repeat(fillWidth) +
+        design.corners[1]
+      ).slice(0, $width);
 
-      const middleLine = (design.vertical + design.fill.repeat(fillWidth) + design.vertical).slice(0, $width);
+      const middleLine = (design.vertical + design.fill.repeat(fillWidth) + design.vertical).slice(
+        0,
+        $width
+      );
 
-      const bottomLine = (design.corners[2] + design.horizontal.repeat(fillWidth) + design.corners[3]).slice(0, $width);
+      const bottomLine = (
+        design.corners[2] +
+        design.horizontal.repeat(fillWidth) +
+        design.corners[3]
+      ).slice(0, $width);
 
       for (let i = 0; i < $height; i++) {
         // prettier-ignore
@@ -128,4 +137,12 @@ const Box = Component((configValue: Value<BoxConfig>) => {
   });
 }, defineComponentExports<WithBB>());
 
-export { Box, BoxConfig, BoxDesign, SolidBoldBoxDesign, SolidBoxDesign, BlockBoxDesign, InvisibleBoxDesign };
+export {
+  Box,
+  BoxConfig,
+  BoxDesign,
+  SolidBoldBoxDesign,
+  SolidBoxDesign,
+  BlockBoxDesign,
+  InvisibleBoxDesign
+};

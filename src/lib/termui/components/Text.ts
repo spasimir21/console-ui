@@ -31,8 +31,6 @@ const Text = Component((textValue: Value<string>, configValue: Value<TextConfig>
     let prevY = 0;
 
     useEffect(() => {
-      if ($x < 0 || $y < 0) return;
-
       layer.screen.beginBatch();
       if ($config.clear !== false) layer.write(prevX, prevY, '\x00'.repeat(prevLength));
       layer.write($x, $y, $text, $style);

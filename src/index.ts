@@ -9,10 +9,19 @@ Terminal.hideCursor();
 Terminal.enableKeyboardInput();
 Terminal.enableMouseInput();
 
-const screen = createTerminalScreen();
+const screen = createTerminalScreen(process.stdout, process.stdout.columns, process.stdout.rows);
 
 const app = App();
 app.mount(screen);
+
+process.stdout.on('resize', () => {
+  Terminal.clear();
+
+  if (!Terminal.isCursorVisible) Terminal.hideCursor();
+  Terminal.enableMouseInput();
+
+  screen.resize(process.stdout.columns, process.stdout.rows);
+});
 
 process.on('exit', () => {
   app.cleanup();
