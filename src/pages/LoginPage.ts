@@ -80,20 +80,12 @@ const LoginPage = Component((): Component[] => {
           xAlign: Alignment.Center
         }),
         formLayout,
-        Button(
-          'register',
-          focusManager.focused,
-          "Don't have an account yet?",
-          () => {
-            $router.route = 'register';
-          },
-          {
-            xAlign: Alignment.Center,
-            boxDesign: InvisibleBoxDesign,
-            textStyle: chalk.underline,
-            focusedTextStyle: chalk.italic.underline.yellow
-          }
-        ),
+        Button('register', focusManager.focused, "Don't have an account yet?", () => $router.goto('register'), {
+          xAlign: Alignment.Center,
+          boxDesign: InvisibleBoxDesign,
+          textStyle: chalk.underline,
+          focusedTextStyle: chalk.italic.underline.yellow
+        }),
         Button(
           'login',
           focusManager.focused,
@@ -103,7 +95,7 @@ const LoginPage = Component((): Component[] => {
             $accountInfo.email = formData.email;
             $accountInfo.password = formData.password;
 
-            $router.route = 'account';
+            $router.goto('account');
           },
           {
             boxDesign: BlockBoxDesign,

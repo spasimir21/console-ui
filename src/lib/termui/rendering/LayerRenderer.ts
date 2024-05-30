@@ -22,9 +22,10 @@ function createLayerRenderer(screen: TerminalScreen, zIndex: number): LayerRende
       x = Math.floor(x);
       y = Math.floor(y);
 
-      if (x < 0 || x >= this.screen.width || y < 0 || y >= this.screen.height) return;
+      if (x >= this.screen.width || y < 0 || y >= this.screen.height) return;
 
-      if (limit) text = text.slice(0, this.screen.width - x);
+      if (limit) text = text.slice(x >= 0 ? 0 : -x, this.screen.width - x);
+      if (x < 0) x = 0;
 
       const startPos = y * screen.width + x;
 
